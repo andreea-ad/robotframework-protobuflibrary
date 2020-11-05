@@ -54,17 +54,26 @@ class ProtobufFile:
                 if line.count("service " + service_name) == 1:
                     return line
 
+    def message_exists(self, message_name):
+        with open(self.filename, "r") as file:
+            for line in file:
+                if line.count("message " + message_name) == 1:
+                    return True
+            return False
+
     def add_rpc(self, service_name, rpc_name, rpc_input, rpc_output):
-        # TODO: raise error if messages for rpc does not exist
         contents = self.get_service_header(service_name)
-        if contents:
-            file_contents = self.get_contents()
-            service_header_start = file_contents.find(contents)
-            to_replace = contents + "\trpc " + rpc_name + " (" + rpc_input + ") returns (" + rpc_output + ") {}"
-            file_contents = file_contents[0:service_header_start] + to_replace
-            file_contents += "\n}\n"
-            self.update_file(WRITE_MODE, file_contents)
-        else:
-            raise RuntimeError("Could not find this service.")
+        if not contents:
+            raise RuntimeError("Service " + service_name + "does not exist in " + self.filename + ".")
+        if not self.message_exists(rpc_input):
+            raise RuntimeError("Message " + rpc_input + " does not exist in " + self.filename + ".")
+        if not self.message_exists(rpc_output):
+            raise RuntimeError("Message " + rpc_output + " does not exist in " + self.filename + ".")
+        file_contents = self.get_contents()
+        service_header_start = file_contents.find(contents)
+        service_header_stop = service_header_start + len(contents)
+        to_replace = contents + "\trpc " + rpc_name + " (" + rpc_input + ") returns (" + rpc_output + ") {}\n"
+        file_contents = file_contents[0:service_header_start] + to_replace + "}\n\n" + file_contents[service_header_stop + 1:len(file_contents)]
+        self.update_file(WRITE_MODE, file_contents)
 
 
