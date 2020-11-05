@@ -7,4 +7,7 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+# .idea dir
 /../../../:\robotframework-protobuflibrary\.idea/
+# pycache
+/src/__pycache__/
